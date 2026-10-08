@@ -33,6 +33,7 @@ export function listenTripleKey(keys: string[] | (() => string[]), onTriple: (ke
 	let count = 0;
 	let lastAt = 0;
 	document.addEventListener('keydown', event => {
+		if (typeof event.key !== 'string') { lastKey = ''; count = 0; return; }
 		const key = event.key.toLowerCase();
 		if (event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || !(typeof keys === 'function' ? keys() : keys).includes(key) || isEditableTarget(event) || !isEnabled()) {
 			lastKey = ''; count = 0;

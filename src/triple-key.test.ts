@@ -51,6 +51,13 @@ it('listens to a key list that changes at runtime', () => {
 	expect(seen).not.toHaveBeenCalled();
 });
 
+it('ignores keydown-like events without a string key', () => {
+	const seen = vi.fn();
+	listenTripleKey(['q'], seen);
+	expect(() => document.body.dispatchEvent(new Event('keydown', { bubbles: true }))).not.toThrow();
+	expect(seen).not.toHaveBeenCalled();
+});
+
 import { normalizeSite, normalizeSites, isSiteBlocked } from './utils/triple-key';
 
 it('normalizes pasted sites and matches subdomains', () => {
