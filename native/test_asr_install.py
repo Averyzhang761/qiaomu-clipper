@@ -19,6 +19,14 @@ class InstallTests(unittest.TestCase):
         with patch.object(asr.subprocess, 'run', return_value=output):
             self.assertAlmostEqual(asr.duration_of('x.m4a', {'ffmpeg': 'ffmpeg', 'ffprobe': None}, dict(os.environ)), 3723.5)
 
+    def test_media_without_an_audio_stream_has_a_clear_error(self):
+        directory = self.base / 'job'; directory.mkdir()
+        media = directory / 'audio.mp4'; media.write_bytes(b'video only')
+        ffmpeg_tail = ['Output file #0 does not contain any stream', 'Error opening output files: Invalid argument']
+        with patch.object(asr, 'duration_of', return_value=7), patch.object(asr, 'stream', return_value=(1, ffmpeg_tail)):
+            with self.assertRaisesRegex(asr.Failed, '^该媒体没有音轨，无法生成字幕$'):
+                asr.convert(directory, media, dict(os.environ), {'ffmpeg': 'ffmpeg'})
+
     def test_catalogue_lists_missing_engines_as_installable(self):
         status = asr.status(); local = {x['id']: x for x in status['local']}
         self.assertEqual(set(local), {'mlx', 'mlx-qwen3', 'faster-whisper'})

@@ -831,7 +831,10 @@ def convert(directory, audio, env, tools):
     if total > MAX_DURATION: raise Failed(f'视频超过 {MAX_DURATION // 3600} 小时，暂不支持')
     wav = directory / 'audio.wav'
     code, tail = stream([tools['ffmpeg'], '-y', '-loglevel', 'error', '-i', str(audio), '-vn', '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', str(wav)], env, lambda line: None)
-    if code != 0 or not wav.is_file(): raise Failed('音频转换失败：' + (tail[-1] if tail else '')[:200])
+    if code != 0 or not wav.is_file():
+        detail = ' '.join(tail).lower()
+        if 'matches no streams' in detail or 'does not contain any stream' in detail: raise Failed('该媒体没有音轨，无法生成字幕')
+        raise Failed('音频转换失败：' + (tail[-1] if tail else '')[:200])
     if audio != wav: audio.unlink(missing_ok=True)
     write_state(directory, totalSec=round(total, 1), progress=18)
     return wav, total
